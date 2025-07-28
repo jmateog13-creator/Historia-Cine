@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronòfon - La Màquina del Temps Musical</title>
+    <!-- S'ha eliminat la llibreria Tone.js -->
+    <style>
+        /* Estils generals */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.8s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            transition: all 0.5s ease;
+        }
+
+        /* Estils per dècades - Variables CSS per a canvis dinàmics */
+        .decade-1920s {
+            background: linear-gradient(45deg, #000000, #333333);
+            color: #f5f5dc;
+            font-family: 'Times New Roman', serif;
+        }
+        .decade-1920s .game-container {
+            background: rgba(245, 245, 220, 0.95);
+            color: #000;
+            border: 3px solid #000;
+        }
+
+        .decade-1930s {
+            background: linear-gradient(45deg, #8B4513, #DAA520);
+            color: #fff;
+        }
+        .decade-1930s .game-container {
+            background: rgba(255, 215, 0, 0.95);
+            color: #8B4513;
+        }
+
+        .decade-1940s {
+            background: linear-gradient(45deg, #2F4F4F, #708090);
+            color: #fff;
+        }
+        .decade-1940s .game-container {
+            background: rgba(47, 79, 79, 0.9);
+            color: #fff;
+        }
+
+        .decade-1950s {
+            background: linear-gradient(45deg, #FF6347, #FFD700);
+            color: #fff;
+        }
+        .decade-1950s .game-container {
+            background: rgba(255, 99, 71, 0.9);
+            color: #fff;
+        }
+
+        .decade-1960s {
+            background: linear-gradient(45deg, #FF1493, #00CED1);
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+        }
+        .decade-1960s .game-container {
+            background: rgba(255, 20, 147, 0.9);
+            color: #fff;
+        }
+
+        .decade-1970s {
+            background: linear-gradient(45deg, #8B4513, #CD853F);
+            color: #fff;
+        }
+        .decade-1970s .game-container {
+            background: rgba(139, 69, 19, 0.9);
+            color: #fff;
+        }
+
+        .decade-1980s {
+            background: linear-gradient(45deg, #FF00FF, #00FFFF);
+            color: #000;
+            font-family: 'Courier New', monospace;
+        }
+        .decade-1980s .game-container {
+            background: rgba(255, 0, 255, 0.9);
+            color: #00FFFF;
+            border: 2px solid #00FFFF;
+            box-shadow: 0 0 20px #00FFFF;
+        }
+
+        .decade-1990s {
+            background: linear-gradient(45deg, #4169E1, #32CD32);
+            color: #fff;
+        }
+        .decade-1990s .game-container {
+            background: rgba(65, 105, 225, 0.9);
+            color: #fff;
+        }
+
+        .decade-2000s {
+            background: linear-gradient(45deg, #1a1a1a, #333);
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+        }
+        .decade-2000s .game-container {
+            background: rgba(26, 26, 26, 0.95);
+            color: #fff;
+            border: 1px solid #666;
+        }
+        
+        .decade-actualitat {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: #fff;
+        }
+        .decade-actualitat .game-container {
+             background: rgba(0, 114, 255, 0.9);
+             color: #fff;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .decade-title {
+            font-size: 2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .scene-description {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .challenge {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .choice-button {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border: 2px solid transparent;
+        }
+
+        .choice-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .choice-button:disabled {
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            display: none;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .feedback.correct {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+
+        .feedback.incorrect {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+
+        .time-travel-indicator {
+            background: linear-gradient(90deg, #00d4ff, #0099cc);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            margin: -40px -40px 20px -40px;
+            animation: pulse 2s infinite;
+        }
+
+        .mission-briefing {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 0.9em;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .timeline {
+            color: #666;
+        }
+
+        .score {
+            font-size: 1.2em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .lives {
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        .final-screen {
+            display: none;
+        }
+
+        .final-screen h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .game-over-screen {
+            display: none;
+        }
+
+        .game-over-screen h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #e74c3c;
+        }
+
+        .mission-report {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #4CAF50;
+        }
+
+        .mission-report h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .trapped-message {
+            background: rgba(231, 76, 60, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e74c3c;
+        }
+
+        .trapped-message h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .final-message {
+            font-size: 1.3em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .restart-button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .next-button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .next-button:hover {
+            background: #1976D2;
+            transform: translateY(-1px);
+        }
+
+        .volume-control-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .volume-control-container:hover {
+            opacity: 1;
+        }
+
+        .volume-control-container span {
+            font-size: 1.2em;
+            color: white;
+        }
+
+        #volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100px;
+            height: 8px;
+            background: #ddd;
+            outline: none;
+            border-radius: 5px;
+            transition: opacity .2s;
+            cursor: pointer;
+        }
+
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #4CAF50;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        #volume-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #4CAF50;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes timeWarp {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.05) rotate(2deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .time-warp-effect {
+            animation: timeWarp 0.8s ease-in-out;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+                width: 95%;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .decade-title {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Element d'àudio per reproduir la música del joc -->
+    <audio id="game-audio" loop></audio>
+
+    <div class="game-container">
+        <!-- Pantalla d'inici -->
+        <div id="start-screen">
+            <h1>⏰ CRONÒFON ⏰</h1>
+            <h2 style="color: #666; margin-bottom: 20px;">La Màquina del Temps Musical</h2>
+            <div style="font-size: 1.1em; margin-bottom: 30px; line-height: 1.8; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <p><strong>Any 2025, Laboratori d'Acústica Temporal...</strong></p>
+                <p>📡 El Dr. Harmonia ha inventat el <em>Cronòfon</em>, una màquina que et permet viatjar al passat com a compositor de cinema. Però hi ha un problema: cada època té les seves pròpies regles musicals!</p>
+                <p>🎭 La teva missió és sobreviure a 10 salts temporals diferents, des de 1920 fins al 2025, adaptant-te als estils i tecnologies de cada dècada.</p>
+                <p>⚠️ <strong>ADVERTÈNCIA:</strong> Si falles 3 vegades, quedaràs atrapat en el temps per sempre!</p>
+            </div>
+            <button onclick="startGame()" class="choice-button" style="font-size: 1.3em; padding: 20px 40px; background: linear-gradient(45deg, #4CAF50, #45a049);">
+                🚀 Activar el Cronòfon
+            </button>
+        </div>
+
+        <!-- Pantalla del joc -->
+        <div id="game-screen" style="display: none;">
+            <div class="time-travel-indicator" id="time-indicator">
+                ⏰ CRONÒFON ACTIVAT - SALT TEMPORAL EN CURS...
+            </div>
+            <div class="decade-title" id="decade-title"></div>
+            <div class="mission-briefing" id="mission-briefing">
+                🎬 <strong>MISSIÓ:</strong> <span id="scene-description"></span>
+            </div>
+            <div class="challenge" id="challenge"></div>
+            <div class="choices" id="choices"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="progress-bar">
+                <div class="score" id="score">Missions Completades: 0/10</div>
+                <div class="timeline" id="timeline">Progés Temporal: <span id="progress-percentage">0%</span></div>
+                <div class="lives" id="lives" style="color: #e74c3c; font-weight: bold;">❤️ Vides: 3/3</div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Game Over -->
+        <div id="game-over-screen" class="game-over-screen">
+            <h2 id="game-over-title">⏰💥 ATRAPAT EN EL TEMPS! 💥⏰</h2>
+            <div class="trapped-message" id="trapped-message">
+                <h3>🚨 PARADOXA TEMPORAL CRÍTICA DETECTADA</h3>
+                <div class="final-message" id="trapped-text"></div>
+                <div id="trapped-era" style="margin: 20px 0; font-size: 1.1em;"></div>
+                <p style="font-style: italic; margin-top: 20px; color: #666;">
+                    ⚠️ El Cronòfon s'ha avariat per massa errors temporals. 
+                    Has quedat atrapat per sempre en aquesta època!
+                </p>
+            </div>
+            <button onclick="restartGame()" class="restart-button" style="background: #e74c3c;">
+                🔄 Intentar Reparar el Cronòfon
+            </button>
+        </div>
+
+        <!-- Pantalla final -->
+        <div id="final-screen" class="final-screen">
+            <h2 id="final-title">🎉 MISSIÓ COMPLETA! 🎉</h2>
+            <div class="mission-report" id="mission-report">
+                <h3>📊 INFORME DE LA MISSIÓ TEMPORAL</h3>
+                <div class="final-message" id="final-message"></div>
+                <div id="time-mastery" style="margin: 20px 0; font-size: 1.1em;"></div>
+                <p style="font-style: italic; margin-top: 20px;">
+                    🌟 Has demostrat ser un veritable <strong>Mestre del Temps Musical</strong>! 
+                    El Dr. Harmonia estaria orgullós.
+                </p>
+            </div>
+            <button onclick="restartGame()" class="restart-button">
+                🔄 Nova Missió Temporal
+            </button>
+        </div>
+    </div>
+
+    <!-- Control de volum global -->
+    <div id="volume-control" class="volume-control-container">
+        <span>🔊</span>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5">
+    </div>
+
+    <script>
+        /**
+         * DADES DEL JOC (AMB ARXIUS DE MÚSICA MP3 A LA CARPETA 'music')
+         */
+        const etapesHistoriques = [
+            { any: "1920 - Era del Cinema Mut", escena: "Has arribat a un cinema de 1920. Charles Chaplin està projectant la seva última comèdia i necessita música per a una escena de persecució de cotxes esbojarrada.", repte: "⚡ DECISIÓ TEMPORAL: Com crees la música per a l'escena?", cssClass: "decade-1920s", intro: "🎩 El Cronòfon t'ha transportat als rugents anys 20...", choices: [{ text: "🎼 Gravo una orquestra simfònica", isCorrect: false, feedback: "❌ ERROR TEMPORAL! La tecnologia per a sincronitzar so gravat amb la imatge encara no existia. El Cronòfon detecta una paradoxa!" }, { text: "🎹 Escric una partitura per al pianista del cinema", isCorrect: true, feedback: "🎯 ÈXIT TEMPORAL! Als anys 20, la música era interpretada en directe durant la projecció. Has entès perfectament l'època!" }], musicFile: "music/20s.mp3" },
+            { any: "1930 - L'Edat d'Or de Hollywood", escena: "El Cronòfon vibra i et porta als estudis de Hollywood. Un director està rodant l'entrada triomfal d'un rei al seu castell en una gran producció èpica.", repte: "⚡ MISSIÓ CRITICAL: Quina tècnica revolucionària utilitzes?", cssClass: "decade-1930s", intro: "🏛️ Salts als gloriosos anys 30 de Hollywood...", choices: [{ text: "🎺 Gran orquestra + melodia associada al rei (leitmotiv)", isCorrect: true, feedback: "🏆 REVOLUCIÓ MUSICAL DETECTADA! Als anys 30 neix la BSO simfònica i s'importa el leitmotiv de l'òpera. Ets un pioner!" }, { text: "📻 La cançó de pop més famosa del moment", isCorrect: false, feedback: "⚠️ ANACRONISME DETECTAT! Aquesta pràctica no es popularitzarà fins dècades després. El temps es resisteix!" }], musicFile: "music/30s.mp3" },
+            { any: "1940 - L'Era del Film Noir", escena: "El Cronòfon et deixa en un carrer fosc i plujós. Un detectiu privat camina entre ombres mientras la càmera el segueix. L'atmosfera ha de ser urbana i misteriosa.", repte: "🕵️ INFILTRACIÓ TEMPORAL: Quina música tries per sobreviure?", cssClass: "decade-1940s", intro: "🌃 T'endineixes en les ombres dels anys 40...", choices: [{ text: "🥁 Marxa militar amb trompetes i timbals", isCorrect: false, feedback: "🚨 DETECCIÓ TEMPORAL! Aquesta música no encaixa amb l'atmosfera íntima del noir. Ets massa visible!" }, { text: "🎷 Solo de saxòfon amb jazz i blues", isCorrect: true, feedback: "🎯 CAMUFLATJE PERFECTE! El jazz i el blues s'han convertit en el so de la ciutat i el misteri. Passes desapercebut!" }], musicFile: "music/40s.mp3" },
+            { any: "1950 - L'Espectacle Cinemascope", escena: "El temps t'arrossega fins a Roma antiga (recreada als estudis). Tens davant la cursa de quadrigues més espectacular mai filmada: Ben-Hur!", repte: "🏛️ DESAFIAMENT ÈPIC: Com representes la grandiositat?", cssClass: "decade-1950s", intro: "🎬 Arribes a l'era daurada del cinema èpic...", choices: [{ text: "🎸 Grup de Rock & Roll", isCorrect: false, feedback: "🎭 CONTRAST TEMPORAL! Encara que el Rock neix als 50, no s'usa per a èpica. Massa rebel per a Roma!" }, { text: "🎼 Orquestra immensa + cors + percussions brutals", isCorrect: true, feedback: "⚡ GRANDIOSITAT MÀXIMA! Els 50 són l'era de les partitures grandioses. El teu so omple pantalles gegants!" }], musicFile: "music/50s.mp3" },
+            { any: "1960 - La Revolució Cultural", escena: "El Cronòfon ressona amb energia rebel. Dos joves fugen en moto per la carretera infinita d'Easy Rider. La contracultura està naixent!", repte: "✊ REVOLUCIÓ MUSICAL: Defineix l'esperit rebel de l'època!", cssClass: "decade-1960s", intro: "🏍️ Cavalques cap als turbulents anys 60...", choices: [{ text: "🎼 Peça clàssica de Bach", isCorrect: false, feedback: "🎩 MASSA CONSERVADOR! La joventut et veuria com 'the establishment'. No connectes amb la rebel·lia!" }, { text: "🎸 Cançó de rock de Steppenwolf (Born to be Wild)", isCorrect: true, feedback: "🔥 REVOLUCIÓ COMPLETA! Als 60, el rock és tan important com l'orquestra. Has capturat l'esperit rebel!" }], musicFile: "music/60s.mp3" },
+            { any: "1970 - L'Era dels Blockbusters", escena: "El mar tremola al teu voltant. Un tauró gegant s'acosta a uns banyistes innocents. Steven Spielberg et mira expectant. Cal crear terror absolut!", repte: "🦈 MISSIÓ SPIELBERG: Com crees tensió insuportable?", cssClass: "decade-1970s", intro: "🌊 Neges en l'era dels grans blockbusters...", choices: [{ text: "🎵 Dues notes greus repetides cada cop més ràpid", isCorrect: true, feedback: "🏆 OBRA MESTRA TEMPORAL! Has creat una de les bandes sonores més famoses de la història. John Williams aprovarà!" }, { text: "🎷 Jazz relaxat per crear contrast", isCorrect: false, feedback: "😴 TENSIÓ PERDUDA! Acabes de trencar la por més icònica del cinema. Spielberg no ho entén!" }], musicFile: "music/70s.mp3" },
+            { any: "1980 - El Futur Electrònic", escena: "Neons rosa i blau t'envolten. Una nau espacial vola sobre un Los Angeles futurista i decadent. Ridley Scott necessita el so del futur mateix!", repte: "🚀 MISSIÓ BLADE RUNNER: Quina tecnologia domina aquesta era?", cssClass: "decade-1980s", intro: "⚡ Saltes al futur electrònic dels anys 80...", choices: [{ text: "🎻 Orquestra de corda tradicional", isCorrect: false, feedback: "⏰ MASSA CLÀSSIC! Tot i ser bell, el futur demana nous sons. L'electrònica és el camí!" }, { text: "🎹 Sintetitzadors per crear atmosferes alienígenes", isCorrect: true, feedback: "🌌 FUTUR PERFECTE! Vangelis i tu redefiniu el so de la ciència-ficció. Els sintetitzadors són el nou llenguatge!" }], musicFile: "music/80s.mp3" },
+            { any: "1990 - L'Era del Mixtape", escena: "Quentin Tarantino et contracta per la seva pel·lícula més icònica. John Travolta i Uma Thurman estan a punt de ballar. Necessites LA cançó perfecta!", repte: "🕺 MISSIÓ TARANTINO: Qual és la seva fórmula secreta?", cssClass: "decade-1990s", intro: "💿 Enters en l'era dorada del mixtape...", choices: [{ text: "🎼 Compondre una peça orquestral original", isCorrect: false, feedback: "📻 NO ÉS EL SEU ESTIL! Tarantino és el rei de la música pop preexistent. Busca en els vinils antics!" }, { text: "💎 Recuperar una joia musical antiga i donar-li nova vida", isCorrect: true, feedback: "🎬 GENIALITAT TARANTINO! Ets el mestre del 'mixtape cinematogràfic'. Les cançons del passat reviuen amb nou significat!" }], musicFile: "music/90s.mp3" },
+            { any: "2000 - L'Èpica Digital", escena: "El Cronòfon et transporta a la Terra Mitjana. Peter Jackson està filmant la batalla de Helm's Deep per El Señor de los Anillos. Necessita música que faci sentir l'èpica fantàstica com mai abans!", repte: "⚔️ MISSIÓ JACKSON: Com crees l'èpica del nou mil·lenni?", cssClass: "decade-2000s", intro: "🗡️ Arribes a l'era de l'èpica digital...", choices: [{ text: "🎹 Només sintetitzadors electrònics", isCorrect: false, feedback: "🤖 MASSA FUTURISTA! La Terra Mitjana necessita calor humà. L'electrònica pura no conecta amb la fantasia!" }, { text: "⚔️ Orquestra + cors ètnics + instruments antics + tecnologia digital", isCorrect: true, feedback: "🏆 ÈPICA PERFECTA! Howard Shore i tu heu creat la simfonia definitiva: tradició + modernitat. La Terra Mitjana té veu!" }], musicFile: "music/2000s.mp3" },
+            { any: "Actualitat - L'Era Híbrida", escena: "Has arribat al present! Una batalla final entre un superheroi i milers de robots. Hans Zimmer et passa el testimoni. És la teva prova final!", repte: "🤖 MISSIÓ FINAL: Crea el so del segle XXI!", cssClass: "decade-actualitat", intro: "🔥 Retornes al present per la batalla definitiva...", choices: [{ text: "🎹 Només un piano sol", isCorrect: false, feedback: "😇 MASSA MINIMALISTA! Aquesta batalla èpica demana tot l'arsenal sonor disponible. Pensa en gran!" }, { text: "⚡ Orquestra + sons electrònics + disseny de so brutal", isCorrect: true, feedback: "🏆 MESTRE TEMPORAL CONFIRMAT! Has dominat el so híbrid modern. El Cronòfon reconeix la teva maestria!" }], musicFile: "music/actualitat.mp3" }
+        ];
+
+        /**
+         * VARIABLES GLOBALS DEL JOC
+         */
+        let currentLevel = 0;
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+        let gameEnded = false;
+        const maxErrors = 3;
+
+        /**
+         * ELEMENTS DEL DOM
+         */
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const finalScreen = document.getElementById('final-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const decadeTitle = document.getElementById('decade-title');
+        const sceneDescription = document.getElementById('scene-description');
+        const challenge = document.getElementById('challenge');
+        const choicesContainer = document.getElementById('choices');
+        const feedback = document.getElementById('feedback');
+        const score = document.getElementById('score');
+        const lives = document.getElementById('lives');
+        const finalMessage = document.getElementById('final-message');
+        const volumeSlider = document.getElementById('volume-slider');
+        const gameAudio = document.getElementById('game-audio');
+
+        /**
+         * INICIA EL JOC
+         */
+        function startGame() {
+            // El clic de l'usuari permetrà la reproducció automàtica de l'àudio.
+            setGlobalVolume(volumeSlider.value);
+            proceedWithGameStart();
+        }
+        
+        function proceedWithGameStart() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            currentLevel = 0;
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            gameEnded = false;
+            
+            document.body.classList.add('time-warp-effect');
+            setTimeout(() => {
+                document.body.classList.remove('time-warp-effect');
+                loadLevel();
+            }, 800);
+        }
+
+        /**
+         * FUNCIÓ PER CONTROLAR LA MÚSICA AMB L'ELEMENT <AUDIO>
+         * @param {string | null} musicFile - La ruta de l'arxiu MP3, o null per aturar la música.
+         */
+        function switchTrack(musicFile) {
+            if (musicFile) {
+                gameAudio.src = musicFile;
+                // Intentem reproduir la música. Els navegadors poden bloquejar-ho si no hi ha interacció prèvia.
+                const playPromise = gameAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.error("Error en la reproducció d'àudio:", error);
+                        // L'usuari haurà de fer clic per iniciar l'àudio.
+                    });
+                }
+            } else {
+                gameAudio.pause();
+                gameAudio.currentTime = 0;
+            }
+        }
+
+        /**
+         * CARREGA UNA MISSIÓ TEMPORAL
+         */
+        function loadLevel() {
+            if (currentLevel >= etapesHistoriques.length) {
+                endGame();
+                return;
+            }
+
+            const etapa = etapesHistoriques[currentLevel];
+            
+            // Canvia la música per a la nova etapa
+            switchTrack(etapa.musicFile);
+
+            const timeIndicator = document.getElementById('time-indicator');
+            timeIndicator.textContent = etapa.intro || "⏰ CRONÒFON ACTIVAT - SALT TEMPORAL EN CURS...";
+            timeIndicator.style.animation = 'none';
+            timeIndicator.offsetHeight; // Force reflow
+            timeIndicator.style.animation = 'pulse 1s ease-in-out';
+            
+            setTimeout(() => {
+                document.body.className = etapa.cssClass;
+                decadeTitle.textContent = `📍 DESTINACIÓ: ${etapa.any}`;
+                sceneDescription.textContent = etapa.escena;
+                challenge.textContent = etapa.repte;
+                
+                choicesContainer.innerHTML = '';
+                etapa.choices.forEach((choice, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'choice-button';
+                    button.textContent = choice.text;
+                    button.onclick = () => selectChoice(index);
+                    button.style.opacity = '0';
+                    button.style.transform = 'translateY(20px)';
+                    choicesContainer.appendChild(button);
+                    
+                    setTimeout(() => {
+                        button.style.transition = 'all 0.3s ease';
+                        button.style.opacity = '1';
+                        button.style.transform = 'translateY(0)';
+                    }, 200 + (index * 100));
+                });
+                
+                feedback.style.display = 'none';
+                score.textContent = `Missions Completades: ${correctAnswers}/${etapesHistoriques.length}`;
+                
+                const remainingLives = maxErrors - incorrectAnswers;
+                lives.textContent = `❤️ Vides: ${remainingLives}/${maxErrors}`;
+                if (remainingLives <= 1) {
+                    lives.style.color = '#e74c3c';
+                    lives.style.animation = 'pulse 1s infinite';
+                } else if (remainingLives <= 2) {
+                    lives.style.color = '#f39c12';
+                } else {
+                    lives.style.color = '#27ae60';
+                    lives.style.animation = 'none';
+                }
+                
+                const progressPercentage = Math.round((currentLevel / etapesHistoriques.length) * 100);
+                document.getElementById('progress-percentage').textContent = `${progressPercentage}%`;
+                
+            }, 500);
+        }
+
+        /**
+         * GESTIONA LA SELECCIÓ D'UNA OPCIÓ
+         */
+        function selectChoice(choiceIndex) {
+            if (gameEnded) return;
+            
+            const etapa = etapesHistoriques[currentLevel];
+            const selectedChoice = etapa.choices[choiceIndex];
+            
+            const buttons = choicesContainer.querySelectorAll('.choice-button');
+            buttons.forEach((button, index) => {
+                button.disabled = true;
+                if (index === choiceIndex) {
+                    button.style.transform = 'scale(1.05)';
+                    button.style.boxShadow = selectedChoice.isCorrect ? 
+                        '0 0 20px rgba(76, 175, 80, 0.6)' : 
+                        '0 0 20px rgba(244, 67, 54, 0.6)';
+                } else {
+                    button.style.opacity = '0.5';
+                }
+            });
+            
+            setTimeout(() => {
+                feedback.textContent = selectedChoice.feedback;
+                feedback.className = selectedChoice.isCorrect ? 'feedback correct' : 'feedback incorrect';
+                feedback.style.display = 'block';
+                feedback.style.opacity = '0';
+                feedback.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    feedback.style.transition = 'all 0.5s ease';
+                    feedback.style.opacity = '1';
+                    feedback.style.transform = 'translateY(0)';
+                }, 100);
+                
+                if (selectedChoice.isCorrect) {
+                    correctAnswers++;
+                } else {
+                    incorrectAnswers++;
+                    if (incorrectAnswers >= maxErrors) {
+                        setTimeout(() => {
+                            gameOver();
+                        }, 2000);
+                        return;
+                    }
+                }
+                
+                const nextButton = document.createElement('button');
+                nextButton.className = 'next-button';
+                nextButton.textContent = currentLevel === etapesHistoriques.length - 1 ? 
+                    '🏁 Finalitzar Missió Temporal' : 
+                    '➡️ Següent Salt Temporal';
+                nextButton.onclick = nextLevel;
+                feedback.appendChild(nextButton);
+                
+            }, 500);
+        }
+
+        /**
+         * AVANÇA AL SEGÜENT NIVELL
+         */
+        function nextLevel() {
+            currentLevel++;
+            document.body.classList.add('time-warp-effect');
+            setTimeout(() => {
+                document.body.classList.remove('time-warp-effect');
+                loadLevel();
+            }, 800);
+        }
+
+        /**
+         * GAME OVER
+         */
+        function gameOver() {
+            gameEnded = true;
+            switchTrack(null); // Atura la música
+            gameScreen.style.display = 'none';
+            gameOverScreen.style.display = 'block';
+            
+            let trappedText = '';
+            let eraDescription = '';
+            const trappedEra = etapesHistoriques[currentLevel];
+            
+            trappedText = `Has comès massa errors temporals i ara estàs atrapat per sempre a '${trappedEra.any}'! La música d'aquesta època serà la teva condemna eterna...`;
+            eraDescription = `⏰ ATRAPAT EN: ${trappedEra.any}`;
+            
+            document.getElementById('trapped-text').textContent = trappedText;
+            document.getElementById('trapped-era').innerHTML = `<strong>Errors Comesos:</strong> ${incorrectAnswers}/${maxErrors}<br><strong>Missions Completades:</strong> ${correctAnswers}/${etapesHistoriques.length}<br><strong>${eraDescription}</strong>`;
+            
+            gameOverScreen.style.opacity = '0';
+            gameOverScreen.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                gameOverScreen.style.transition = 'all 0.8s ease';
+                gameOverScreen.style.opacity = '1';
+                gameOverScreen.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        /**
+         * FINALITZA EL JOC AMB ÈXIT
+         */
+        function endGame() {
+            gameEnded = true;
+            switchTrack(null); // Atura la música
+            gameScreen.style.display = 'none';
+            finalScreen.style.display = 'block';
+            document.body.className = '';
+            
+            const percentage = Math.round((correctAnswers / etapesHistoriques.length) * 100);
+            let finalTitle = '', finalText = '', masteryLevel = '';
+            
+            if (percentage === 100) { finalTitle = '🏆 MESTRE ABSOLUT DEL TEMPS! 🏆'; finalText = `Increïble! Has superat totes les ${etapesHistoriques.length} missions amb èxit total.`; masteryLevel = '🌟 RANG: Crononauta Llegendari'; }
+            else if (percentage >= 80) { finalTitle = '🎉 EXPERT TEMPORAL! 🎉'; finalText = `Excel·lent treball! Has completat ${correctAnswers} de ${etapesHistoriques.length} missions correctament.`; masteryLevel = '⭐ RANG: Compositor Temporal Expert'; }
+            else { finalTitle = '📚 APRENENT TEMPORAL 📚'; finalText = `Has completat ${correctAnswers} de ${etapesHistoriques.length} missions. Cada viatge és una oportunitat d'aprendre.`; masteryLevel = '🔹 RANG: Explorador Musical Novell'; }
+            
+            document.getElementById('final-title').textContent = finalTitle;
+            finalMessage.textContent = finalText;
+            document.getElementById('time-mastery').innerHTML = `<strong>Puntuació Final:</strong> ${correctAnswers}/${etapesHistoriques.length} (${percentage}%)<br><strong>Errors Comesos:</strong> ${incorrectAnswers}/${maxErrors}<br>${masteryLevel}`;
+            
+            finalScreen.style.opacity = '0';
+            finalScreen.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                finalScreen.style.transition = 'all 0.8s ease';
+                finalScreen.style.opacity = '1';
+                finalScreen.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        /**
+         * REINICIA EL JOC
+         */
+        function restartGame() {
+            switchTrack(null); // Atura la música
+            currentLevel = 0;
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            gameEnded = false;
+            finalScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+            document.body.className = '';
+            
+            startScreen.style.opacity = '0';
+            startScreen.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                startScreen.style.transition = 'all 0.5s ease';
+                startScreen.style.opacity = '1';
+                startScreen.style.transform = 'translateY(0)';
+            }, 100);
+        }
+
+        /**
+         * AJUSTA EL VOLUM GLOBAL
+         */
+        function setGlobalVolume(linearVolume) {
+            gameAudio.volume = linearVolume;
+        }
+
+        // Event listener per al slider de volum
+        volumeSlider.addEventListener('input', (e) => {
+            setGlobalVolume(e.target.value);
+        });
+
+        /**
+         * INICIALITZACIÓ DEL JOC
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            startScreen.style.display = 'block';
+            gameScreen.style.display = 'none';
+            finalScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            
+            startScreen.style.opacity = '0';
+            startScreen.style.transform = 'translateY(30px)';
+            setTimeout(() => {
+                startScreen.style.transition = 'all 1s ease';
+                startScreen.style.opacity = '1';
+                startScreen.style.transform = 'translateY(0)';
+            }, 300);
+        });
+    </script>
+</body>
+</html>
